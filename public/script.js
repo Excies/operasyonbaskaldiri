@@ -50,6 +50,7 @@ function animateCount(target) {
 function render(data) {
   animateCount(data.votes);
   updateGoal(data.votes);
+  setCrowd(data.votes);
   voterTotal.textContent = '(' + data.voters.length + ')';
   voterList.innerHTML = '';
   data.voters.forEach((v, i) => {
@@ -147,6 +148,69 @@ function spawnArrows() {
   }
 }
 spawnArrows();
+
+const crowdCanvas = document.getElementById('crowd');
+const ctx = crowdCanvas.getContext('2d');
+const CROWD_MAX = 400;
+const PALETTE = ['#FF4500', '#FFB300', '#0079D3', '#39d353', '#ff8717', '#8a2be2', '#d63031', '#0984e3', '#e17055', '#6c5ce7'];
+const PEOPLE = [];
+let cw = 0, ch = 0;
+
+function sizeCanvas() {
+  cw = crowdCanvas.width = window.innerWidth;
+  ch = crowdCanvas.height = window.innerHeight;
+  for (const p of PEOPLE) {
+    p.x = Math.min(p.x, cw - 4);
+    p.y = Math.min(p.y, ch - 8);
+  }
+}
+window.addEventListener('resize', sizeCanvas);
+sizeCanvas();
+
+function spawnPerson(i) {
+  const depth = Math.random();
+  const scale = 0.45 + depth * 0.75;
+  const person = {
+    x: Math.random() * cw,
+    y: ch * (0.45 + Math.random() * 0.5),
+    player: scale,
+    headR: (9 + Math.random() * 8) * scale,
+    bodyW: (16 + Math.random() * 10) * scale,
+    bodyH: (20 + Math.random() * 12) * scale,
+    color: PALETTE[i % PALETTE.length],
+    phase: Math.random() * Math.PI * 2,
+    alpha: 0.35 + depth * 0.55
+  };
+  person.bodyTop = person.y + person.headR * 0.4;
+  return person;
+}
+
+function setCrowd(count) {
+  const target = Math.min(count, CROWD_MAX);
+  while (PEOPLE.length < target) {
+    PEOPLE.push(spawnPerson(PEOPLE.length));
+  }
+  if (PEOPLE.length > target) PEOPLE.length = target;
+}
+
+function drawCrowd(t) {
+  ctx.clearRect(0, 0, cw, ch);
+  for (const p of PEOPLE) {
+    const bob = Math.sin(t / 900 + p.phase) * 2.5;
+    const cy = p.bodyTop + bob;
+    ctx.globalAlpha = p.alpha;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.ellipse(p.x, cy + p.bodyH / 2, p.bodyW / 2, p.bodyH / 2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(p.x, cy, p.headR, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  requestAnimationFrame(drawCrowd);
+}
+requestAnimationFrame(drawCrowd);
 
 refresh();
 setInterval(refresh, 15000);

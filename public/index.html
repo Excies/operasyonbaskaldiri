@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Operasyon: Başkaldırı — r/kgbtr</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="bg" id="bg" aria-hidden="true"></div>
+
+  <main class="wrap">
+    <div class="badge">r/kgbtr</div>
+    <h1 id="title">OPERASYON:<br>BAŞKALDIRI</h1>
+    <p class="sub">sesini yükselt • direnişe katıl</p>
+
+    <div class="counter">
+      <div class="arrow" id="bigArrow" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="54" height="54">
+          <path fill="#FF4500" d="M12 2l10 13H2l10-13z"/>
+        </svg>
+      </div>
+      <div class="countbox">
+        <span id="voteCount">0</span>
+        <small>KİŞİ DİRENİŞTE</small>
+      </div>
+      <div class="bar"><div id="barFill"></div></div>
+      <p class="goal" id="goalText"></p>
+    </div>
+
+    <form id="voteForm">
+      <input id="username" placeholder="Reddit adın" autocomplete="off" spellcheck="false" maxlength="22" required>
+      <button id="voteBtn">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <path fill="currentColor" d="M12 2l10 13H2l10-13z"/>
+        </svg>
+        DİRENİŞE ORTAK OL
+      </button>
+    </form>
+
+    <div id="message" class="msg"></div>
+
+    <section class="voters">
+      <h3>DİRENİŞTEKİLER <span id="voterTotal"></span></h3>
+      <ul id="voterList"></ul>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

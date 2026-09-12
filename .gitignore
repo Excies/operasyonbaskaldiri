@@ -1,0 +1,4 @@
+node_modules/
+votes.json
+*.log
+.DS_Store

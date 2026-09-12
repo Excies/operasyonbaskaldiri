@@ -64,8 +64,11 @@ function rateAllowed(ip) {
 }
 
 function badgeFor(rank) {
-  if (rank <= 10) return { text: 'İLK 10', cls: 'gold' };
-  const milestones = [25, 50, 100, 250, 500, 1000, 2000, 5000];
+  const bands = [[10, 'İLK 10'], [20, 'İLK 20'], [50, 'İLK 50'], [100, 'İLK 100'], [500, 'İLK 500'], [1000, 'İLK 1000']];
+  for (const [b, label] of bands) {
+    if (rank <= b) return { text: label, cls: 'gold' };
+  }
+  const milestones = [25, 250, 1500, 2000, 2500, 5000, 10000, 25000, 50000];
   if (milestones.includes(rank)) return { text: rank + '. DİRENİŞÇİ', cls: 'milestone' };
   return null;
 }

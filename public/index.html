@@ -11,6 +11,8 @@
 </head>
 <body>
   <div class="bg" id="bg" aria-hidden="true"></div>
+  <button id="themeBtn" class="theme-ctl" aria-label="Tema değiştir" title="Tema değiştir"></button>
+  <div class="corners" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
 
   <main class="wrap">
     <div class="badge">r/kgbtr</div>
@@ -39,6 +41,13 @@
         </svg>
         DİRENİŞE ORTAK OL
       </button>
+      <input type="text" id="hpName" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <div class="captcha" id="captchaBox">
+        <label class="cap-label" for="captchaA">İNSAN OLDUĞUNU KANITLA</label>
+        <span class="cap-q" id="captchaQ">…</span>
+        <input id="captchaA" class="cap-a" inputmode="numeric" placeholder="= ?" maxlength="3" autocomplete="off" required>
+        <button type="button" id="capRefresh" class="cap-ref" title="Yeni soru" aria-label="Yeni soru">↻</button>
+      </div>
     </form>
 
     <div id="message" class="msg"></div>

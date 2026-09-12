@@ -10,8 +10,42 @@ const voterTotal = document.getElementById('voterTotal');
 const barFill = document.getElementById('barFill');
 const goalText = document.getElementById('goalText');
 const bigArrow = document.getElementById('bigArrow');
+const themeBtn = document.getElementById('themeBtn');
+const captchaQ = document.getElementById('captchaQ');
+const captchaA = document.getElementById('captchaA');
+const hpName = document.getElementById('hpName');
 
 let currentVotes = 0;
+let captchaId = null;
+let captchaSig = '';
+let captchaTs = '';
+
+/* —— Tema (açık / koyu / operasyon) —— */
+const THEMES = ['light', 'dark', 'operation'];
+const THEME_ICON = {
+  light: '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0-14.5v2m0 14v2M4.2 4.2l1.4 1.4m12.8 12.8 1.4 1.4M1.5 12h2m17 0h2M4.2 19.8l1.4-1.4m12.8-12.8 1.4-1.4"/></svg>',
+  dark: '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>',
+  operation: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1" opacity=".5"/><path fill="none" stroke="currentColor" stroke-width="1" d="M12 5V3M12 21v-2M19 12h2M3 12h2"/></svg>'
+};
+
+let theme = localStorage.getItem('baskaldiri.theme');
+if (!theme || !THEMES.includes(theme)) {
+  theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+function applyTheme(t) {
+  theme = t;
+  document.documentElement.dataset.theme = t;
+  themeBtn.innerHTML = THEME_ICON[t];
+  themeBtn.title = 'Tema: ' + t.toUpperCase() + ' (tıkla: değiştir)';
+  localStorage.setItem('baskaldiri.theme', t);
+}
+
+themeBtn.addEventListener('click', () => {
+  applyTheme(THEMES[(THEMES.indexOf(theme) + 1) % THEMES.length]);
+});
+
+applyTheme(theme);
 
 function setMsg(text, type) {
   message.className = 'msg ' + (type || '');
@@ -55,13 +89,22 @@ function render(data) {
   data.voters.forEach((v, i) => {
     const li = document.createElement('li');
     li.style.animationDelay = Math.min(i, 20) * 30 + 'ms';
+    const left = document.createElement('span');
+    left.className = 'left';
     const name = document.createElement('span');
     name.className = 'name';
     name.textContent = 'u/' + v.name;
+    left.appendChild(name);
+    if (v.badge) {
+      const pill = document.createElement('span');
+      pill.className = 'badge-pill ' + v.badge.cls;
+      pill.textContent = v.badge.text;
+      left.appendChild(pill);
+    }
     const time = document.createElement('span');
     time.className = 'time';
     time.textContent = formatTime(v.time);
-    li.appendChild(name);
+    li.appendChild(left);
     li.appendChild(time);
     voterList.appendChild(li);
   });
@@ -90,10 +133,36 @@ async function refresh() {
   } catch (e) { /* sessiz */ }
 }
 
+/* —— Matematik captcha —— */
+const captchaRefresh = document.getElementById('capRefresh');
+
+async function loadCaptcha() {
+  try {
+    const res = await fetch('/api/captcha');
+    const d = await res.json();
+    captchaId = d.id;
+    captchaSig = d.sig || '';
+    captchaTs = d.ts || '';
+    captchaQ.textContent = d.q;
+    captchaA.value = '';
+    captchaA.focus();
+  } catch (e) {
+    captchaQ.textContent = 'FORMU YENİLE';
+  }
+}
+
+captchaRefresh.addEventListener('click', loadCaptcha);
+
 voteForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const username = usernameInput.value.trim();
+  const answer = captchaA.value.trim();
   if (!username) return;
+  if (!captchaId || !answer) {
+    setMsg('☝ SONUCU YAZ, DOĞRULAMAYI TAMAMLA', 'info');
+    captchaA.focus();
+    return;
+  }
 
   voteBtn.disabled = true;
   setMsg('GÖNDERİLİYOR...', 'info');
@@ -101,23 +170,36 @@ voteForm.addEventListener('submit', async (e) => {
     const res = await fetch('/api/vote', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username })
+      body: JSON.stringify({
+        username,
+        captchaId,
+        captchaAnswer: answer,
+        captchaSig,
+        captchaTs,
+        hp: hpName.value
+      })
     });
     const data = await res.json();
     if (!res.ok) {
       setMsg('❌ ' + data.error, 'err');
       message.classList.add('shake');
       setTimeout(() => message.classList.remove('shake'), 600);
+      loadCaptcha();
       voteBtn.disabled = false;
       return;
     }
     usernameInput.value = '';
-    setMsg('✓ DİRENİŞTESİN — OY BAŞARILI', 'ok');
     bigArrow.classList.remove('jump');
     void bigArrow.offsetWidth;
     bigArrow.classList.add('jump');
     spawnConfetti();
     render(data);
+    if (data.yourBadge) {
+      setMsg('🏆 ' + data.yourBadge.text + ' ÖZEL ROZETİNİ KAZANDIN!', 'ok');
+    } else {
+      setMsg('✓ DİRENİŞTESİN — OY BAŞARILI', 'ok');
+    }
+    loadCaptcha();
   } catch (err) {
     setMsg('❌ SUNUCUYA ULAŞILAMADI', 'err');
     message.classList.add('shake');
@@ -149,4 +231,5 @@ function spawnArrows() {
 spawnArrows();
 
 refresh();
+loadCaptcha();
 setInterval(refresh, 15000);
